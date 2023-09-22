@@ -8,7 +8,15 @@ using Xunit;
 
 namespace Parquet.Test.Serialisation {
     public class SchemaReflectorTest : TestBase {
-
+        private enum IntEnum : int {
+            enum1=0,
+            enum2=0
+        }
+        
+        private enum StrEnum  {
+            enum1,
+            enum2
+        }
 
         /// <summary>
         /// Essentially all the test cases are this class' fields
@@ -20,6 +28,9 @@ namespace Parquet.Test.Serialisation {
             public float? NullableFloat { get; set; }
 
             public int[]? IntArray { get; set; }
+            
+            public IntEnum IntEnum { get; set; }
+            public string StrEnum { get; set; }
         }
 
         [Fact]
@@ -27,7 +38,7 @@ namespace Parquet.Test.Serialisation {
             ParquetSchema schema = typeof(PocoClass).GetParquetSchema(true);
 
             Assert.NotNull(schema);
-            Assert.Equal(4, schema.Fields.Count);
+            Assert.Equal(6, schema.Fields.Count);
 
             // verify
 
@@ -67,7 +78,7 @@ namespace Parquet.Test.Serialisation {
         [Fact]
         public void I_can_recognize_inherited_properties() {
             ParquetSchema schema = typeof(PocoSubClass).GetParquetSchema(true);
-            Assert.Equal(5, schema.Fields.Count);
+            Assert.Equal(7, schema.Fields.Count);
             DataField extraProperty = (DataField)schema[0];
             Assert.Equal("ExtraProperty", extraProperty.Name);
             Assert.Equal(typeof(int), extraProperty.ClrType);
