@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
         <Company></Company>
         <PackageId>Parquet.Net</PackageId>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -31,6 +30,8 @@
         <PackageIcon>icon.png</PackageIcon>
         <Description>Fully managed Apache Parquet implementation.</Description>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <TargetFramework>net6.0</TargetFramework>
+        <Version>1.0.4</Version>
 
     </PropertyGroup>
 

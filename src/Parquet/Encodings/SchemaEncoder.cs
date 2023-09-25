@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
 using Parquet.Meta;
@@ -133,7 +134,7 @@ namespace Parquet.Encodings {
             return true;
         }
 
-        public static bool IsSupported(SType? t) => SupportedTypes.Contains(t);
+        public static bool IsSupported(SType? t) => SupportedTypes.Contains(t) || t?.IsEnum == true;
 
         /// <summary>
         /// Builds <see cref="Field"/> from schema
@@ -544,6 +545,40 @@ namespace Parquet.Encodings {
                     UUID = new UUIDType()
                 };
                 tse.TypeLength = 16;
+            }
+            else if(st.IsEnum) {
+                SType underlyingType = Enum.GetUnderlyingType(st);
+                
+                if(underlyingType == typeof(short) || underlyingType == typeof(ushort) ||
+                   underlyingType == typeof(int) || underlyingType == typeof(uint)) {
+
+                    tse.Type = Type.INT32;
+                    sbyte bw = 0;
+                    if(underlyingType == typeof(byte) || underlyingType == typeof(sbyte))
+                        bw = 8;
+                    else if(underlyingType == typeof(short) || underlyingType == typeof(ushort))
+                        bw = 16;
+                    else if(underlyingType == typeof(int) || underlyingType == typeof(uint))
+                        bw = 32;
+                    bool signed = underlyingType == typeof(sbyte) || underlyingType == typeof(short) || underlyingType == typeof(int);
+
+                    tse.LogicalType = new LogicalType {
+                        INTEGER = new IntType {
+                            BitWidth = bw,
+                            IsSigned = signed
+                        }
+                    };
+                    tse.ConvertedType = bw switch {
+                        8 => signed ? ConvertedType.INT_8 : ConvertedType.UINT_8,
+                        16 => signed ? ConvertedType.INT_16 : ConvertedType.UINT_16,
+                        32 => signed ? ConvertedType.INT_32 : ConvertedType.UINT_32,
+                        _ => ConvertedType.INT_32
+                    };
+                }
+                else {
+                    throw new InvalidOperationException($"enum {st} is not supported underlying type");
+                }
+                
             } else {
                 throw new InvalidOperationException($"type {st} is not supported");
             }

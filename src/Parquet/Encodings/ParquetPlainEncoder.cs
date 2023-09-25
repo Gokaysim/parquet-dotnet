@@ -9,6 +9,7 @@ using Parquet.Extensions;
 using Parquet.File.Values.Primitives;
 using Parquet.Meta;
 using TType = Parquet.Meta.Type;
+using Type = System.Type;
 
 namespace Parquet.Encodings {
 
@@ -130,6 +131,25 @@ namespace Parquet.Encodings {
             } else if(t == typeof(Guid[])) {
                 Span<Guid> span = ((Guid[])data).AsSpan(offset, count);
                 Encode(span, destination);
+            } else if(t.GetElementType()?.IsEnum==true) {
+                Type underlyingType = t.GetElementType()!.GetEnumUnderlyingType();
+                
+                if(underlyingType == typeof(int)) {
+                    Span<int> span = ((int[])data).AsSpan(offset, count);
+                    Encode(span, destination);
+                } else if(underlyingType == typeof(uint)) {
+                    Span<uint> span = ((uint[]) data).AsSpan(offset, count);
+                    Encode(span, destination);
+                } else if(underlyingType == typeof(short)) {
+                    Span<short> span = ((short[]) data).AsSpan(offset, count);
+                    Encode(span, destination);
+                } else if(underlyingType == typeof(ushort)) {
+                    Span<ushort> span = ((ushort[]) data).AsSpan(offset, count);
+                    Encode(span, destination);
+                } else {
+                    throw new NotSupportedException($"enum {t.GetElementType()} is not supported underlying type");
+                }
+                
             } else {
                 throw new NotSupportedException($"no PLAIN encoder exists for {t}");
             }
@@ -207,6 +227,30 @@ namespace Parquet.Encodings {
             } else if(t == typeof(Guid[])) {
                 Span<Guid> span = ((Guid[])data).AsSpan(offset, count);
                 elementsRead = Decode(source, span, tse);
+            } else if(t.GetElementType()?.IsEnum==true) {
+                var underlyingType = t.GetElementType()!.GetEnumUnderlyingType();
+                
+                if(underlyingType == typeof(int)) {
+                    Span<int> span = ((int[])data).AsSpan(offset, count);
+                    elementsRead = Decode(source, span);
+                }
+                else if(underlyingType == typeof(uint)) {
+                    Span<uint> span = ((uint[]) data).AsSpan(offset, count);
+                    elementsRead = Decode(source, span);
+                }
+                else if(underlyingType == typeof(short)) {
+                    Span<short> span = ((short[]) data).AsSpan(offset, count);
+                    elementsRead = Decode(source, span);
+                }
+                else if(underlyingType == typeof(ushort)) {
+                    Span<ushort> span = ((ushort[]) data).AsSpan(offset, count);
+                    elementsRead = Decode(source, span);
+                }
+                else {
+                    throw new NotSupportedException($"enum {t.GetElementType()} is not supported underlying type");
+                }
+                
+                
             } else {
                 elementsRead = 0;
                 throw new NotSupportedException($"no PLAIN decoder exists for {t}");

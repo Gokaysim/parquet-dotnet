@@ -187,7 +187,7 @@ namespace Parquet.Serialization {
 
                 // validate reflected vs actual schema field
                 DataField? actual = reader.Schema.DataFields.FirstOrDefault(f => f.Path.Equals(fasm.Field.Path));
-                if(actual != null && !actual.IsArray && !fasm.Field.Equals(actual)) {
+                if(actual != null && !actual.IsArray && (!fasm.Field.Equals(actual) && !fasm.Field.ClrType.IsEnum)) {
                     throw new InvalidDataException($"property '{fasm.Field.ClrPropName}' is declared as '{fasm.Field}' but source data has it as '{actual}'");
                 }
 
